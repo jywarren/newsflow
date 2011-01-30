@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/r/eco/!svn/ver/497/jeff/newsflow/config/initializers
+END
+inflections.rb
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/r/eco/!svn/ver/497/jeff/newsflow/config/initializers/inflections.rb
+END
+session_store.rb
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/r/eco/!svn/ver/497/jeff/newsflow/config/initializers/session_store.rb
+END
+backtrace_silencers.rb
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/r/eco/!svn/ver/497/jeff/newsflow/config/initializers/backtrace_silencers.rb
+END
+new_rails_defaults.rb
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/r/eco/!svn/ver/497/jeff/newsflow/config/initializers/new_rails_defaults.rb
+END
+mime_types.rb
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/r/eco/!svn/ver/497/jeff/newsflow/config/initializers/mime_types.rb
+END

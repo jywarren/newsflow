@@ -1,0 +1,14 @@
+Planet.get_source(<%= @source.id %>,<%= @source.lat %>,<%= @source.lon %>)
+setInterval(Planet.outlines,500)
+
+Map.rotate = 0.2
+
+if (Config.display) {
+	new PeriodicalExecuter(function(){window.location.reload},1200)
+} else {
+	new PeriodicalExecuter(Planet.get_sources,10)
+}
+
+$('newsflow').hide()
+Newsflow.breadcrumb('<%= @source.name %>','javascript:void(0);','source')
+// Newsflow.show_prompt()

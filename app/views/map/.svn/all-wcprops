@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/r/eco/!svn/ver/746/jeff/newsflow/app/views/map
+END
+index.html.erb
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/r/eco/!svn/ver/746/jeff/newsflow/app/views/map/index.html.erb
+END
+source.html.erb
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/r/eco/!svn/ver/756/jeff/newsflow/app/views/map/source.html.erb
+END
+place.html.erb
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/r/eco/!svn/ver/756/jeff/newsflow/app/views/map/place.html.erb
+END

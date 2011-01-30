@@ -1,0 +1,48 @@
+new Ajax.Request('/data/place/<%= @place %>',{
+	method: 'get',
+	onComplete: function(response) {
+		Planet.outlines()
+		Planet.parse_sources(response.responseText.evalJSON())
+		
+		// switch back and forth from live mode to 'tour' mode:
+		if (Config.display) {
+			// $l('Boot up tour mode')
+			// // get a source_id list:
+			// new Ajax.Request('/data/source_list',{
+			// 	method: 'get',
+			// 	onComplete: function(response) {
+			// 		Planet.source_ids = response.responseText.evalJSON()
+			// 		// every 5 minutes:
+			// 		new PeriodicalExecuter(function(){$l('TOUR MODE '+Planet.tour_mode);Planet.tour_mode = !Planet.tour_mode},120)
+			// 		// cycle sources
+			// 		new PeriodicalExecuter(function(){
+			// 			if (Planet.tour_mode) {
+			// 				Planet.source_ids.unshift(Planet.source_ids.pop())
+			// 				$l('getting source: '+Planet.source_ids[0][2])
+			// 				Planet.get_source(Planet.source_ids[0][0],Planet.source_ids[0][1],Planet.source_ids[0][2])
+			// 			} else {
+			// 				if (Planet.paused) {
+			// 					Planet.stories = new Hash
+			// 					Planet.sources = new Hash
+			// 					Planet.destinations = new Hash
+			// 				}
+			// 				Planet.paused = false
+			// 				Planet.get_sources()
+			// 			}
+			// 		},25)
+			// 	}
+			// })
+		}
+		
+	}
+})
+
+Map.rotate = 0.2
+
+if (Config.display) {
+	// new PeriodicalExecuter(function(){window.location.reload},1200)
+} else {
+	// new PeriodicalExecuter(Planet.get_sources,10)
+}
+Newsflow.breadcrumb('<%= @place %>','javascript:void(0);','place')
+

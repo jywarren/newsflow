@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/r/eco/!svn/ver/745/jeff/newsflow/app/models
+END
+story.rb
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/r/eco/!svn/ver/685/jeff/newsflow/app/models/story.rb
+END
+source.rb
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/r/eco/!svn/ver/685/jeff/newsflow/app/models/source.rb
+END
+place.rb
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/r/eco/!svn/ver/756/jeff/newsflow/app/models/place.rb
+END
+story_place.rb
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/r/eco/!svn/ver/745/jeff/newsflow/app/models/story_place.rb
+END

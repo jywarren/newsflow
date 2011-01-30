@@ -1,0 +1,14 @@
+- Have peasants check if there's an obstacle before moving onto a square
+- Have peasants send in their new positions when they've reached a new location
+- Store peasant locations per-game
+- exchange token with 'player' so only they can control the game; others can watch
+- test if 2 people accept a task at the same time
+
+- make new sprites for peasant facing each of 4 directions
+	- switch peasant sprites based on peasant.direction 0-3 param
+- add a peasant 'time to completion' param so they know how long to work on a task
+- peasant damage param; display in peasant info
+
+
+====================================
+- consider ability to view all tasks

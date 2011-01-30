@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/r/eco/!svn/ver/497/jeff/newsflow/script
+END
+console
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/r/eco/!svn/ver/497/jeff/newsflow/script/console
+END
+server
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/r/eco/!svn/ver/497/jeff/newsflow/script/server
+END
+dbconsole
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/r/eco/!svn/ver/497/jeff/newsflow/script/dbconsole
+END
+destroy
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/r/eco/!svn/ver/497/jeff/newsflow/script/destroy
+END
+runner
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/r/eco/!svn/ver/497/jeff/newsflow/script/runner
+END
+about
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/r/eco/!svn/ver/497/jeff/newsflow/script/about
+END
+generate
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/r/eco/!svn/ver/497/jeff/newsflow/script/generate
+END
+plugin
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/r/eco/!svn/ver/497/jeff/newsflow/script/plugin
+END

@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/r/eco/!svn/ver/745/jeff/newsflow/db/migrate
+END
+20090906100125_add_language.rb
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/r/eco/!svn/ver/696/jeff/newsflow/db/migrate/20090906100125_add_language.rb
+END
+20090820193303_create_stories.rb
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/r/eco/!svn/ver/497/jeff/newsflow/db/migrate/20090820193303_create_stories.rb
+END
+20090825050656_add_source_id.rb
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/r/eco/!svn/ver/531/jeff/newsflow/db/migrate/20090825050656_add_source_id.rb
+END
+20090828151958_create_places.rb
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/r/eco/!svn/ver/602/jeff/newsflow/db/migrate/20090828151958_create_places.rb
+END
+20090828145659_add_link_to_sources.rb
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/r/eco/!svn/ver/602/jeff/newsflow/db/migrate/20090828145659_add_link_to_sources.rb
+END
+20090829152555_add_places_to_story_remove_full.rb
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/r/eco/!svn/ver/633/jeff/newsflow/db/migrate/20090829152555_add_places_to_story_remove_full.rb
+END
+20090924132344_create_story_places.rb
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/r/eco/!svn/ver/745/jeff/newsflow/db/migrate/20090924132344_create_story_places.rb
+END
+20090830194723_add_source.rb
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/r/eco/!svn/ver/633/jeff/newsflow/db/migrate/20090830194723_add_source.rb
+END
+20090821030802_create_sources.rb
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/r/eco/!svn/ver/528/jeff/newsflow/db/migrate/20090821030802_create_sources.rb
+END
+20090902113918_add_source_count.rb
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/r/eco/!svn/ver/685/jeff/newsflow/db/migrate/20090902113918_add_source_count.rb
+END

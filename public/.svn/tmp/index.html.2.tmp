@@ -1,0 +1,576 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<title>Cartagen: NEWSFLOW</title>
+	<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="no title" charset="utf-8">
+	<!--[if IE]><script type="text/javascript" src="cartagen/excanvas.js"></script><![endif]-->
+	<script src="cartagen/cartagen.js" type="text/javascript" charset="utf-8"></script>
+	<script src="javascripts/date.js" type="text/javascript" charset="utf-8"></script>
+	<meta name="viewport" content="width=320; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+	<script type="text/javascript" charset="utf-8">
+		Cartagen.setup({
+			stylesheet: "style.gss",
+			static_map: true,
+			static_map_layers: [
+				// "samples/rome/waterway.js",
+			],
+			powersave: false,
+			lat: 40,
+			lng: 0,
+			zoom: 0.000101,
+			// zoom_out_limit: 0.00011
+			zoom_out_limit: 0.000101
+		})
+		Planet = {
+			paused: false,
+			opacity: 1,
+			countries: new Hash,
+			stories: new Hash,
+			destinations: new Hash,
+			sources: new Hash,
+			tour_mode: false,
+			init: function() {
+				new Ajax.Request('/data/sources/50',{
+					method: 'get',
+					onComplete: function(response) {
+						Planet.outlines()
+						Planet.parse_sources(response.responseText.evalJSON())
+						
+						// switch back and forth from live mode to 'tour' mode:
+						if (Config.display) {
+							$l('Boot up tour mode')
+							// get a source_id list:
+							new Ajax.Request('/data/source_list',{
+								method: 'get',
+								onComplete: function(response) {
+									Planet.source_ids = response.responseText.evalJSON()
+									// every 5 minutes:
+									new PeriodicalExecuter(function(){$l('TOUR MODE '+Planet.tour_mode);Planet.tour_mode = !Planet.tour_mode},120)
+									// cycle sources
+									new PeriodicalExecuter(function(){
+										if (Planet.tour_mode) {
+											Planet.source_ids.unshift(Planet.source_ids.pop())
+											$l('getting source: '+Planet.source_ids[0][2])
+											Planet.get_source(Planet.source_ids[0][0],Planet.source_ids[0][1],Planet.source_ids[0][2])
+										} else {
+											if (Planet.paused) {
+												Planet.stories = new Hash
+												Planet.sources = new Hash
+												Planet.destinations = new Hash
+											}
+											Planet.paused = false
+											Planet.get_sources()
+										}
+									},25)
+								}
+							})
+						}
+						
+					}
+				})
+				
+				Map.rotate = 0.2
+				
+				if (!Config.display)  {
+					new PeriodicalExecuter(function(){window.location.reload},1200)
+					new PeriodicalExecuter(Planet.get_sources,20)
+				}
+				$('canvas').observe('cartagen:postdraw', Planet.draw.bindAsEventListener(this))
+				//Disable normal OSM data/feature loading:
+				$('canvas').observe('cartagen:predraw', function() {Data.current_keys = new Hash})
+				Geohash.fill_bbox = function() {}
+				$('canvas').observe('mousedown', Newsflow.click)
+			},
+			draw: function() {
+				if (Config.display) Planet.walk()
+				if ((Glop.frame % 30) == 0 && Planet.stories.size()>0) {
+					var story = Planet.stories.values()[parseInt(Math.random(new Date)*Planet.stories.size())]
+					// console.log(story['description'].replace(/(<([^>]+)>)/ig," "))
+					var minutes_ago = parseInt((new Date - Date.parse(story.created_at.substr(0,10) +' '+story.created_at.substr(11,8)))/(60*60*1000))
+					$('title').innerHTML = "<b>"+(story.source)+":</b> "+(story['description'].replace(/(<([^>]+)>)/ig," ")).truncate(140)//+' ('+minutes_ago+' minutes ago)'
+				}
+				for (var i = 0;i < Planet.countries.size();i++) {						
+					var country = Planet.countries.values()[i]
+					// override hover-in:
+					country.birthdate = 4000
+					country.draw()
+				}
+				Planet.stories.values().each(function(source) {
+					$C.save()
+					var radius = source.age*source.age*10000
+					var source_x = Projection.lon_to_x(source.lon), source_y = Projection.lat_to_y(source.lat)
+					if (source.age < 100) source.age += 1
+					// circle for new items:
+					if (source.age < 30) {
+						$C.begin_path()
+						$C.line_width(30000)
+						$C.stroke_style('#E4721C')
+						$C.opacity(0.2)
+						$C.arc(source_x,source_y,200000,0,Math.PI*2,true)
+						$C.stroke()
+					}
+					$C.begin_path()
+					$C.arc(source_x,source_y,radius,0,Math.PI*2,true)
+					$C.canvas.clip()
+					$C.save()
+						$C.begin_path()
+						// $C.line_width(60000)
+						// $C.stroke_style('red')
+						// $C.arc(source_x,source_y,radius,0,Math.PI*2,true)
+						$C.line_width((20/Map.zoom)*(10/source.age))
+						$C.opacity(0.6*Planet.opacity)
+						// $C.stroke_style('#26407F')
+						$C.stroke_style(Newsflow.color(source.source))
+						$C.move_to(source_x,source_y)
+							// $C.save()
+							// $C.translate(source_x,source_y)
+							// Planet.label(source.source,'#111')
+							// $C.restore()
+						if (source.places) {
+							if (!(source.places instanceof Array)) source.places = [source.places]
+							source.places.each(function(dest) {
+								var dest_x = Projection.lon_to_x(dest.place.lon), dest_y = Projection.lat_to_y(dest.place.lat)
+								var dx      = source_x - dest_x
+								var dy      = source_y - dest_y
+								var d       = Math.sqrt(dx*dx + dy*dy)
+								var cp1x =  source_x + 1/4*(dest_x - source_x)
+								var cp2x =  source_x + 3/4*(dest_x - source_x)
+							
+								var cp1y =  source_y + 1/4*(dest_y - source_y)- d*0.3
+								var cp2y =  source_y + 3/4*(dest_y - source_y)- d*0.3
+							
+								$C.quadratic_curve_to(cp1x, cp1y, dest_x,dest_y)
+								$C.move_to(source_x,source_y)
+							})
+							$C.stroke()
+						$C.restore()
+					}
+					$C.restore()
+				})
+				// Planet.destinations.values().each(function(destination) {
+				// 	$C.save()
+				// 	$C.translate(destination.x,destination.y)
+				// 	// console.log(destination.name)
+				// 	Planet.label(destination.name,'white')
+				// 	$C.restore()
+				// })
+				Newsflow.LabelStore.draw()
+			},
+			label: function(text,color) {
+				$C.save()
+				$C.scale(1/Map.zoom,1/Map.zoom)
+				var height = 16, padding = 3
+				var width = $C.measure_text('Georgia',height,text)
+				// $C.fill_style('white')
+				// $C.opacity(0.2)
+				// $C.rect(-((width + padding)/2),
+				// 			-(height/2 + padding/2),
+				// 			width + padding,
+				// 	        height + padding)
+				$C.opacity(0.8)
+				$C.draw_text('Georgia',
+				             height,
+							 color,
+				             0,
+							 0,
+							 text)
+				$C.restore()
+			},
+			outlines: function() {
+				new Ajax.Request('/planet.json',{
+					method: 'get',
+					onComplete: function(response) {
+						var countries = response.responseText.evalJSON().features
+						$l('receiving planet: '+countries.length)
+						for (var i=0;i<countries.length;i++) {
+							var country = countries[i]
+							var data = {
+								id: country.id,
+								nodes: [],
+								color: country['properties']['colour'],
+								tags: new Hash(),
+								closed_poly:true
+							}
+							if (country['properties']['name']) data.name = country['properties']['name']
+							var multipoly = []
+							country['geometry']['coordinates'].each(function(poly) {
+								multipoly = multipoly.concat(poly[0])
+								multipoly.push(multipoly[0])
+							})
+							multipoly.each(function(nd, index) {
+								var n = new Node
+								n.lat = nd[1]
+								n.lon = nd[0]
+								n.x = Projection.lon_to_x(n.lon)
+								n.y = Projection.lat_to_y(n.lat)
+								var node_id = country.id*index
+								Feature.nodes.set(node_id,n)
+								data.nodes.push(n)
+							})
+							data.tags.set('country',name)
+							var way = new Way(data)
+							Planet.countries.set(data.name,way)
+							Style.parse_styles(way,Style.styles.way)
+						}
+						Glop.trigger_draw()
+					}
+				})
+			},
+			get_sources: function() {
+				if (!Planet.paused) {
+					new Ajax.Request('/data/sources/50',{
+						method: 'get',
+						onComplete: function(response) {
+							// Newsflow.LabelStore.reboot()
+							Planet.parse_sources(response.responseText.evalJSON())
+							Glop.trigger_draw()
+						}
+					})
+				}
+			},
+			parse_sources: function(sources) {
+				$l('receiving planet: '+sources.length)
+				for (var i=0;i<sources.length;i++) {
+					var story = sources[i]['story']
+					story.lat = story['source']['source']['lat']
+					story.lon = story['source']['source']['lon']
+					story.source = story['source']['source']['name']
+					if (!Planet.sources.get(story.source)) {
+						Planet.sources.set(story.source,true)
+						Newsflow.LabelStore.add({text:story.source,lat:story.lat,lon:story.lon,color:'#111'})
+					}
+					story.age = 0
+					if (!Planet.stories.get(story['title'])) Planet.stories.set(story['title'],story)
+					story.places.each(function(place) {
+						if (!Planet.destinations.get(place.place.name)) {
+							Planet.destinations.set(place.place.name,true)
+							Newsflow.LabelStore.add({text:place.place.name,lat:place.place.lat,lon:place.place.lon,color:'white'})
+						}
+						// place.place.x = Projection.lon_to_x(place.place.lon)
+						// place.place.y = Projection.lat_to_y(place.place.lat)
+					})
+				}
+				$l('Fetched '+sources.length+' new sources, with '+Planet.stories.size()+' imported.')
+			},
+			get_source: function(source_id,lat,lon) {				
+				Planet.paused = true
+				Planet.source_lat = lat
+				Planet.source_lon = lon
+				new Ajax.Request('/data/source/'+source_id,{
+					method: 'get',
+					onComplete: function(response) {
+						if (response.responseText != '[]') {
+							Planet.stories = new Hash
+							Planet.sources = new Hash
+							Planet.destinations = new Hash
+							Newsflow.LabelStore.reboot()
+							Planet.parse_sources(response.responseText.evalJSON())
+							Cartagen.go_to(Planet.source_lat,Planet.source_lon,Map.zoom)
+						} else {
+						}
+					}
+				})
+			},
+			westward: true,
+			walk: function() {
+				if (Planet.westward) {
+					// walk west
+					if (Map.lon < 100) {
+						Map.x = Projection.lon_to_x(Map.lon + 0.1)
+					} else {
+						Planet.westward = false
+					}
+				} else {
+					// walk east
+					if (Map.lon > -100) {
+						Map.x = Projection.lon_to_x(Map.lon - 0.1)
+					} else {
+						Planet.westward = true
+					}
+				}
+			},
+		}
+		
+		
+		var Newsflow = {
+			color: function(text) {
+				return "#"+(parseInt((text),36).toString(16)+"000000").truncate(6,"")	
+			},
+			click: function() {
+				var x = Map.x+((Mouse.x+Glop.width/2)/Map.zoom)
+				var y = Map.y+((Mouse.y+Glop.height/2)/Map.zoom)
+				var key = Newsflow.LabelStore.create_key(x,y)
+				$l(key)
+				var label = Newsflow.LabelStore.storage.get(key)
+				$l(label.text)
+			}
+		}
+		
+		Newsflow.LabelStore = {
+			/**
+			 * Old zoom level; test against this to see if we have to recalculate.
+			 */
+			zoom: Map.zoom,
+			font_size: 16,
+			cell_height: function() {return Math.floor((this.font_size + 6)/(Map.zoom))},
+			cell_width: function() {return Math.floor((this.font_size * 14)/(Map.zoom))},
+			storage: new Hash,
+			all_labels: new Array,
+			/**
+			 * label is an object like {lon:12.1,lat:45.2,color:'red',text:'hello',story_id: 23}
+			 */
+			add: function(label,refresh) {
+				if (Object.isUndefined(refresh)) refresh = true
+				label.displaced = false
+				label.x1 = Projection.lon_to_x(label.lon)
+				label.y1 = Projection.lat_to_y(label.lat)
+				var key = Newsflow.LabelStore.create_key(label.x1,label.y1)
+				label.x2 = parseFloat(key.split(',')[0])
+				label.y2 = parseFloat(key.split(',')[1])
+				
+				// store ALL labels, even if they dont fit
+				if (refresh) this.all_labels.push(label)
+
+				// check if there's a label at that position yet:
+				if (Newsflow.LabelStore.storage.get(key)) {
+					label.displaced = true
+					// find a neighboring location (recursive)
+					var adjacent = Newsflow.LabelStore.get_neighbor(key,0)
+					if (adjacent) {
+						label.x2 = parseFloat(adjacent.split(',')[0])
+						label.y2 = parseFloat(adjacent.split(',')[1])
+						Newsflow.LabelStore.storage.set(adjacent,label)
+					} else {
+						$l('failed to label:'+label.text+'... not enough space!')
+					}
+					// console.log('neighbor:'+adjacent)
+				} else {
+					Newsflow.LabelStore.storage.set(key,label)
+				}
+			},
+			create_key: function(x,y) {
+				return ((Math.floor(x/this.cell_width())*this.cell_width())+Math.floor(this.cell_width()/2))+','+((Math.floor(y/this.cell_height())*this.cell_height())-Math.floor(this.cell_height()/2))
+			},
+			recalculate: function() {
+				Newsflow.LabelStore.storage = new Hash
+				// create new keys for each label as we zoom in/out:
+				Newsflow.LabelStore.all_labels.each(function(label) {
+					Newsflow.LabelStore.add({text:label.text,lat:label.lat,lon:label.lon,color:label.color},false)
+				})
+			},
+			reboot: function() {
+				this.storage = new Hash
+				this.all_labels = new Array
+			},
+			get_neighbor: function(key,direction,recursed) {
+				recursed = recursed || 0
+				$l('recursed:'+recursed)
+				var dirs = ['top','bottom']//,'right']//,'left']
+
+				var x = parseFloat(key.split(',')[0])
+				var y = parseFloat(key.split(',')[1])
+				if (direction > dirs.length-1) {
+					if (recursed < 2) {
+						// further out
+						var new_key = Math.floor(x)+','+Math.floor(y - (this.cell_height()*2))
+						$l('move to new area'+new_key+' .. recursed:'+recursed)
+						return Newsflow.LabelStore.get_neighbor(new_key,0,recursed+1)
+					} else {
+						$l('failed!!!'+key)
+						return false
+					}
+				} else {
+					// console.log('neighbor:'+dirs[direction]+' '+key)
+					Newsflow.LabelStore.highlight(x,y,'white')
+				
+					if (dirs[direction] == 'top') {
+						y += this.cell_height()
+					} else if (dirs[direction] == 'right') {
+						x += this.cell_width()
+					} else if (dirs[direction] == 'left') {
+						x -= this.cell_width()
+					} else if (dirs[direction] == 'bottom') {
+						y -= this.cell_height()
+					}
+					var new_key = Math.floor(x)+','+Math.floor(y)
+					$l(key+' >> '+new_key)
+					if (Newsflow.LabelStore.storage.get(new_key)) {
+						return Newsflow.LabelStore.get_neighbor(new_key,direction+1,recursed)
+					} else {
+						return new_key
+					}
+				}
+			},
+			highlight: function(x,y,color) {
+				if (Config.debug) {
+					color = color || 'red'
+					$C.fill_style(color)
+					$C.opacity(0.3)
+					$C.line_width(8/Map.zoom)
+					$C.rect(x,y,Newsflow.LabelStore.cell_width(),Newsflow.LabelStore.cell_height())
+				}
+			},
+			draw: function() {
+				
+					// missing trigonometry!!! map is tilted!!!
+						var x = Map.x-((Mouse.x+Glop.width/2)/Map.zoom)
+						var y = Map.y-((Mouse.y+Glop.height/2)/Map.zoom)
+						$C.fill_style('red')
+						$C.opacity(0.3)
+						$C.line_width(8/Map.zoom)
+						$C.rect(x,y,10/Map.zoom,10/Map.zoom)
+				
+				if (this.zoom/Map.zoom > 1.2 || this.zoom/Map.zoom < 0.8) {
+					// Newsflow.LabelStore.reboot()
+					this.recalculate()
+					this.zoom = Map.zoom
+				}
+				this.storage.keys().each(function(key) {
+					var x = parseFloat(key.split(',')[0])
+					var y = parseFloat(key.split(',')[1])
+					// whole label cell:
+					this.highlight(x,y)
+				},this)
+				this.storage.values().each(function(label) {
+					// console.log(label)
+					$C.save()
+					if (label.displaced) {
+						$C.translate(label.x2+(6/Map.zoom),label.y2)
+							var width = Newsflow.LabelStore.label(label.text,label.color)
+						$C.translate(-label.x2-(6/Map.zoom),-label.y2)
+						if (Math.abs(label.x1 - label.x2) > this.cell_width()/4 || Math.abs(label.y1 - label.y2) > this.cell_height()/4) {
+							// connect label to object with a line: 
+							$C.save()
+							$C.opacity(0.3)
+							$C.begin_path()
+								$C.line_width(2/Map.zoom)
+								$C.stroke_style(label.color)
+								$C.move_to(label.x1,label.y1)
+								if (label.x1 > label.x2) {
+									$C.line_to(label.x2+((width+8)/Map.zoom),label.y2+(this.cell_height()/2))
+								} else {
+									$C.line_to(label.x2,label.y2+(this.cell_height()/2))
+								}
+							$C.stroke()
+							$C.restore()
+						}
+						$C.begin_path()
+							$C.opacity(0.9)
+						 	$C.fill_style(Newsflow.color(label.text))
+							$C.arc(label.x2,label.y2+(Newsflow.LabelStore.font_size/(2*Map.zoom))+2.5/Map.zoom,5/Map.zoom,0,Math.PI*2,true)
+						$C.fill()
+					} else {
+						$C.translate(label.x1+(6/Map.zoom),label.y1-(Newsflow.LabelStore.font_size/(2*Map.zoom)))
+							var width = Newsflow.LabelStore.label(label.text,label.color)
+						$C.translate(-label.x1-(6/Map.zoom),-label.y1+(Newsflow.LabelStore.font_size/(2*Map.zoom)))
+						$C.begin_path()
+							$C.opacity(0.9)
+						 	$C.fill_style(Newsflow.color(label.text))
+							$C.arc(label.x1,label.y1,5/Map.zoom,0,Math.PI*2,true)
+						$C.fill()
+					}
+					$C.restore()
+				},this)
+			},
+			label: function(text,color) {
+				$C.save()
+				$C.scale(1/Map.zoom,1/Map.zoom)
+				var height = 16, padding = 3
+				var width = $C.measure_text('Georgia',height,text)
+				// $C.fill_style('white')
+				// $C.opacity(0.2)
+				// $C.rect(-((width + padding)/2),
+				// 			-(height/2 + padding/2),
+				// 			width + padding,
+				// 	        height + padding)
+
+				// whole label cell:
+				// $C.fill_style('red')
+				// $C.opacity(0.3)
+				// $C.line_width(8/Map.zoom)
+				// $C.rect(x,y,Newsflow.LabelStore.cell_width(),Newsflow.LabelStore.cell_height())
+
+				$C.opacity(0.8)
+				$C.draw_text('Georgia',
+				             height,
+							 color,
+				             padding/2,
+							 height+(padding/2),
+							 text)
+				$C.restore()
+				return width
+			},
+		}
+
+		document.observe('cartagen:init', Planet.init)
+	</script>
+	
+	<style type="text/css" media="screen">
+		#newsflow {
+			padding:10px;
+		}
+		#newsflow div.column {
+			font-size:0.9em;
+			float:left;
+			width:16%;
+			padding:0 8px;
+			padding-right:16px;
+		}
+		#newsflow div.column.last {
+			padding-right:8px;
+		}
+		#newsflow em {
+			font-style:normal;
+			font-weight:bold;
+			font-size: 1.8em;
+		}
+		#title {
+		   -moz-user-select: none;
+		   -khtml-user-select: none;
+		   user-select: none;
+			font-family:georgia,times;
+			font-size:3em;
+			font-style:italic;
+			position:absolute; bottom:10px; left:10px;
+			color:white;
+		}
+		#title b {
+			color:black;
+			font-weight:normal;
+			font-size:1.2em;
+		}
+	</style>
+</head>
+<body>
+
+<div id='newsflow' class="overlay">
+	<div class="column">
+		<p><em>NEWSFLOW</em> is a dynamic, real-time map of news reporting, which displays both the latest top stories as well as the news organizations which covered them. All articles are from the last few minutes. </p>
+	</div>
+	<div class="column">
+	  <p>Viewing news in this way lets us see how the choice of 'top stories' by news bureaus is geographically unequal, or rather, what areas of the world are neglected by various national news sources. </p>
+	</div>
+        <div class="column">
+	  <p>Arcs link the location of the news organizations' headquarters to the places mentioned in a given article.</p>
+	</div>
+	<div class="column">
+		<p>Build with HTML5 on the dynamic mapping framework <b>CARTAGEN</b>, <b>NEWSFLOW</b> draws on real-time data from over 200 news organizations as well as Google, Yahoo, and other sources. </p>
+	</div>
+	<div class="column">
+		<p>The ability to view such data in real time offers viewers a chance to see how journalists shape national attention as stories unfolds</p>
+		<p><a href="javascript:$('newsflow').hide()">close</a></p>
+	</div>
+</div>
+
+<div id="title">
+</div>
+
+<canvas id="canvas"></canvas>
+
+</body>
+</html>

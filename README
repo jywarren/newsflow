@@ -1,0 +1,9 @@
+NEWSFLOW is a dynamic, real-time map of news reporting, which displays both the latest top stories as well as the news organizations which covered them. All articles are from the last few minutes.
+
+Viewing news in this way lets us see how the choice of 'top stories' by news bureaus is geographically unequal, or rather, what areas of the world are neglected by various national news sources.
+
+Arcs link the location of the news organizations' headquarters to the places mentioned in a given article.
+
+Build with HTML5 on the dynamic mapping framework CARTAGEN, NEWSFLOW draws on real-time data from over 200 news organizations as well as Google, Yahoo, and other sources.
+
+The ability to view such data in real time offers viewers a chance to see how journalists shape national attention as stories unfolds

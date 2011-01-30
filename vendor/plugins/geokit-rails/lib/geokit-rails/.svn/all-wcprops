@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/r/eco/!svn/ver/757/jeff/newsflow/vendor/plugins/geokit-rails/lib/geokit-rails
+END
+acts_as_mappable.rb
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/r/eco/!svn/ver/757/jeff/newsflow/vendor/plugins/geokit-rails/lib/geokit-rails/acts_as_mappable.rb
+END
+ip_geocode_lookup.rb
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/r/eco/!svn/ver/757/jeff/newsflow/vendor/plugins/geokit-rails/lib/geokit-rails/ip_geocode_lookup.rb
+END
+defaults.rb
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/r/eco/!svn/ver/757/jeff/newsflow/vendor/plugins/geokit-rails/lib/geokit-rails/defaults.rb
+END
+geocoder_control.rb
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/r/eco/!svn/ver/757/jeff/newsflow/vendor/plugins/geokit-rails/lib/geokit-rails/geocoder_control.rb
+END

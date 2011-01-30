@@ -1,0 +1,43 @@
+body: {
+	fillStyle: "#556",
+	lineWidth: 0,
+	menu: {
+		"Edit GSS": Cartagen.show_gss_editor,
+		"Download Image": Cartagen.redirect_to_image,
+		"Download Data": Interface.download_bbox
+	}
+},
+node: {
+	fillStyle: "#ddd",
+	strokeStyle: "#090",
+	lineWidth: 0,
+	radius: 1
+},
+way: {
+	strokeStyle: "#ccc",
+	fillStyle: "#6D4F4D",
+	lineWidth: 3,
+	menu: {
+		"Toggle Transparency": function() {
+			if (this._transparency_active) {
+				this.opacity = 1
+				this._transparency_active = false
+			}
+			else {
+				this.opacity = 0.2
+				this._transparency_active = true
+			}
+		}
+	}
+},
+country: {
+	fillStyle: "#A4B5CE",
+	hover: {
+		fillStyle: "#4B6199"
+	},
+	mouseDown: {
+		action: function() {
+			alert('hello')
+		}
+	}
+}

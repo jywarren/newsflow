@@ -1,0 +1,50 @@
+html {
+	font-family:georgia;
+	font-size:0.8em;
+	background:#BCC9D5;
+}
+body {
+	margin:0;
+	padding:30px;
+	width:600px;
+}
+a {
+	color:#555;
+}
+a:hover {
+	color:#222;
+}
+
+a.button {
+	background:#BE3F31 top repeat-x;
+	padding:6px 12px;
+	border:2px solid #900;
+	color:#fff;
+	font-family:georgia, serif;
+	text-decoration:none;
+	font-size:1.3em;
+}
+a.button:hover {
+	background:#b00;
+	color:#ccc;
+}
+a.button:active {
+	background:#900;
+	border-color:#5D1D15;
+}
+
+input {
+	font-size:1.6em;
+}
+
+h2 {
+	font-size:2.2em;
+	font-weight:normal;
+	line-height:1em;
+	margin-bottom:4px;
+}
+
+h3 {
+	font-size:1.4em;
+	font-weight:normal;
+}
